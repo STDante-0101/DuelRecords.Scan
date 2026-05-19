@@ -1,0 +1,18 @@
+## .NET / MAUI
+bin/
+obj/
+*.user
+.vs/
+*.suo
+.idea/
+*.DS_Store
+
+## NuGet
+*.nupkg
+packages/
+
+## Build
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DuelRecords.Scan.ViewModels"
+             xmlns:models="clr-namespace:DuelRecords.Scan.Data.Models"
+             x:Class="DuelRecords.Scan.Pages.CollectionPage"
+             x:DataType="vm:CollectionViewModel"
+             Title="Minha Coleção">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="📷 Escanear"
+                     Command="{Binding GoToScanCommand}"
+                     Order="Primary"
+                     Priority="0" />
+    </ContentPage.ToolbarItems>
+
+    <Grid>
+
+        <!-- Loading -->
+        <ActivityIndicator IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+
+        <!-- Coleção vazia -->
+        <VerticalStackLayout IsVisible="{Binding ShowEmpty}"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center"
+                             Spacing="8">
+            <Label Text="Nenhuma carta na coleção."
+                   HorizontalTextAlignment="Center"
+                   FontSize="16" />
+            <Label Text="Toque em Escanear para adicionar!"
+                   HorizontalTextAlignment="Center"
+                   TextColor="Gray"
+                   FontSize="14" />
+        </VerticalStackLayout>
+
+        <!-- Erro de conexão -->
+        <Label IsVisible="{Binding ShowError}"
+               Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               HorizontalTextAlignment="Center"
+               VerticalOptions="Center"
+               Padding="16" />
+
+        <!-- Grid de cartas -->
+        <CollectionView IsVisible="{Binding ShowCards}"
+                        ItemsSource="{Binding Cards}">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical"
+                                 Span="3"
+                                 VerticalItemSpacing="6"
+                                 HorizontalItemSpacing="6" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Card">
+                    <Border Stroke="#E0E0E0"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Margin="3">
+                        <Grid RowDefinitions="140,Auto">
+                            <Image Grid.Row="0"
+                                   Source="{Binding ImagemUrl}"
+                                   Aspect="AspectFill" />
+                            <VerticalStackLayout Grid.Row="1"
+                                                Padding="6,4,6,6"
+                                                Spacing="2">
+                                <Label Text="{Binding Nome}"
+                                       FontSize="11"
+                                       MaxLines="2"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Quantidade, StringFormat='x{0}'}"
+                                       FontSize="10"
+                                       TextColor="{StaticResource Primary}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>
