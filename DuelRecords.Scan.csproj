@@ -48,8 +48,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="ApiConfig.example.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#000000" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
@@ -70,6 +74,7 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.8" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+		<PackageReference Include="Xamarin.Google.MLKit.TextRecognition" Version="2.13.0.2" Condition="$(TargetFramework.Contains('-android'))" />
 	</ItemGroup>
 
 </Project>

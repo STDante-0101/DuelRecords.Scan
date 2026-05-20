@@ -25,9 +25,38 @@ public partial class CollectionViewModel(DuelRecordsApiService apiService) : Obs
     [NotifyPropertyChangedFor(nameof(ShowEmpty))]
     public partial string? ErrorMessage { get; set; }
 
-    public bool ShowCards => !IsLoading && ErrorMessage is null && Cards.Count > 0;
-    public bool ShowEmpty => !IsLoading && ErrorMessage is null && Cards.Count == 0;
-    public bool ShowError => !IsLoading && ErrorMessage is not null;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedCard))]
+    public partial Card? SelectedCard { get; set; }
+
+    public bool ShowCards     => !IsLoading && ErrorMessage is null && Cards.Count > 0;
+    public bool ShowEmpty     => !IsLoading && ErrorMessage is null && Cards.Count == 0;
+    public bool ShowError     => !IsLoading && ErrorMessage is not null;
+    public bool HasSelectedCard => SelectedCard is not null;
+
+    [RelayCommand]
+    private void SelectCard(Card card) => SelectedCard = card;
+
+    [RelayCommand]
+    private void CloseCard() => SelectedCard = null;
+
+    [RelayCommand]
+    private void NextCard()
+    {
+        if (SelectedCard is null) return;
+        var idx = Cards.IndexOf(SelectedCard);
+        if (idx < Cards.Count - 1)
+            SelectedCard = Cards[idx + 1];
+    }
+
+    [RelayCommand]
+    private void PreviousCard()
+    {
+        if (SelectedCard is null) return;
+        var idx = Cards.IndexOf(SelectedCard);
+        if (idx > 0)
+            SelectedCard = Cards[idx - 1];
+    }
 
     [RelayCommand]
     private async Task LoadCardsAsync()

@@ -14,15 +14,16 @@
                      Priority="0" />
     </ContentPage.ToolbarItems>
 
+    <!-- Grid empilha camadas: cartas embaixo, overlay em cima -->
     <Grid>
 
-        <!-- Loading -->
+        <!-- ── CAMADA 1: Conteúdo principal ─────────────────────────────── -->
+
         <ActivityIndicator IsRunning="{Binding IsLoading}"
                            IsVisible="{Binding IsLoading}"
                            VerticalOptions="Center"
                            HorizontalOptions="Center" />
 
-        <!-- Coleção vazia -->
         <VerticalStackLayout IsVisible="{Binding ShowEmpty}"
                              VerticalOptions="Center"
                              HorizontalOptions="Center"
@@ -36,7 +37,6 @@
                    FontSize="14" />
         </VerticalStackLayout>
 
-        <!-- Erro de conexão -->
         <Label IsVisible="{Binding ShowError}"
                Text="{Binding ErrorMessage}"
                TextColor="Red"
@@ -44,9 +44,10 @@
                VerticalOptions="Center"
                Padding="16" />
 
-        <!-- Grid de cartas -->
-        <CollectionView IsVisible="{Binding ShowCards}"
-                        ItemsSource="{Binding Cards}">
+        <CollectionView x:Name="CardsCollectionView"
+                        IsVisible="{Binding ShowCards}"
+                        ItemsSource="{Binding Cards}"
+                        SelectionMode="Single">
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical"
                                  Span="3"
@@ -79,6 +80,94 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+        <!-- ── CAMADA 2: Overlay flutuante ──────────────────────────────── -->
+        <!-- InputTransparent=False garante que toques não passam para a camada de baixo -->
+        <Grid IsVisible="{Binding HasSelectedCard}"
+              InputTransparent="False">
+
+            <!-- Fundo escuro semi-transparente — toque fora fecha -->
+            <BoxView Color="#CC000000">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CloseCardCommand}" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+
+            <!-- Brilho dourado radial atrás da carta -->
+            <BoxView VerticalOptions="Center"
+                     HorizontalOptions="Center"
+                     WidthRequest="380"
+                     HeightRequest="520">
+                <BoxView.Background>
+                    <RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+                        <GradientStop Color="#80FFD700" Offset="0.0" />
+                        <GradientStop Color="#30FF8C00" Offset="0.5" />
+                        <GradientStop Color="Transparent"  Offset="1.0" />
+                    </RadialGradientBrush>
+                </BoxView.Background>
+            </BoxView>
+
+            <!-- Conteúdo da carta — swipe aqui navega entre cartas -->
+            <VerticalStackLayout VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 Spacing="12">
+                <VerticalStackLayout.GestureRecognizers>
+                    <SwipeGestureRecognizer Direction="Left"  Command="{Binding NextCardCommand}" />
+                    <SwipeGestureRecognizer Direction="Right" Command="{Binding PreviousCardCommand}" />
+                </VerticalStackLayout.GestureRecognizers>
+
+                <!-- Botão X no canto superior direito do card -->
+                <Button Text="✕"
+                        Command="{Binding CloseCardCommand}"
+                        HorizontalOptions="End"
+                        WidthRequest="38"
+                        HeightRequest="38"
+                        CornerRadius="19"
+                        BackgroundColor="White"
+                        TextColor="#333333"
+                        FontSize="15"
+                        FontAttributes="Bold"
+                        Padding="0"
+                        Margin="0,0,4,0" />
+
+                <!-- Imagem da carta em tamanho real -->
+                <Image Source="{Binding SelectedCard.ImagemUrl}"
+                       HeightRequest="360"
+                       WidthRequest="260"
+                       Aspect="AspectFit" />
+
+                <!-- Painel de detalhes com fundo escuro -->
+                <Border BackgroundColor="#EE111827"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        Padding="16,12"
+                        WidthRequest="260">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding SelectedCard.Nome}"
+                               TextColor="White"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"
+                               MaxLines="2"
+                               LineBreakMode="TailTruncation" />
+                        <Label Text="{Binding SelectedCard.Tipo}"
+                               TextColor="#BBBBBB"
+                               FontSize="12"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="{Binding SelectedCard.Raridade}"
+                               TextColor="#FFD700"
+                               FontSize="11"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="{Binding SelectedCard.Quantidade, StringFormat='Quantidade: {0}'}"
+                               TextColor="#AAAAAA"
+                               FontSize="11"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+
+        </Grid>
 
     </Grid>
 </ContentPage>

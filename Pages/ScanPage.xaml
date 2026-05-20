@@ -1,22 +1,183 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DuelRecords.Scan.ViewModels"
+             xmlns:controls="clr-namespace:DuelRecords.Scan.Controls"
              x:Class="DuelRecords.Scan.Pages.ScanPage"
+             x:DataType="vm:ScanViewModel"
              Title="Escanear Carta">
 
-    <!-- Fase 2: aqui entra CameraX + ML Kit OCR -->
-    <VerticalStackLayout VerticalOptions="Center"
-                         HorizontalOptions="Center"
-                         Spacing="16">
-        <Label Text="📷"
-               FontSize="64"
-               HorizontalTextAlignment="Center" />
-        <Label Text="Câmera + OCR"
-               FontSize="20"
-               HorizontalTextAlignment="Center" />
-        <Label Text="Fase 2"
-               TextColor="Gray"
-               HorizontalTextAlignment="Center" />
-    </VerticalStackLayout>
+    <Grid>
 
+        <!-- ── CAMADA 1: Preview da câmera (tela toda) ──────────────────────── -->
+        <controls:CameraPreviewView x:Name="CameraPreview"
+                                     ScanEnabled="{Binding ScanEnabled}"
+                                     HorizontalOptions="Fill"
+                                     VerticalOptions="Fill"
+                                     BackgroundColor="Black" />
+
+        <!-- ── CAMADA 2: Guia em formato de carta YGO ───────────────────────── -->
+        <!--
+            Carta YGO padrão: 59mm × 86mm  →  ratio largura/altura = 0,686
+            Guia: 230px × 335px (~0,686)
+            Posicionada no centro-superior da tela (margem inferior = altura do painel)
+        -->
+        <Grid VerticalOptions="Center"
+              HorizontalOptions="Center"
+              WidthRequest="230"
+              HeightRequest="335"
+              Margin="0,0,0,180">
+
+            <!-- Cantos brancos delimitando a carta completa -->
+            <BoxView VerticalOptions="Start" HorizontalOptions="Start" WidthRequest="24" HeightRequest="3" Color="White" />
+            <BoxView VerticalOptions="Start" HorizontalOptions="Start" WidthRequest="3"  HeightRequest="24" Color="White" />
+            <BoxView VerticalOptions="Start" HorizontalOptions="End"   WidthRequest="24" HeightRequest="3" Color="White" />
+            <BoxView VerticalOptions="Start" HorizontalOptions="End"   WidthRequest="3"  HeightRequest="24" Color="White" />
+            <BoxView VerticalOptions="End"   HorizontalOptions="Start" WidthRequest="24" HeightRequest="3" Color="White" />
+            <BoxView VerticalOptions="End"   HorizontalOptions="Start" WidthRequest="3"  HeightRequest="24" Color="White" />
+            <BoxView VerticalOptions="End"   HorizontalOptions="End"   WidthRequest="24" HeightRequest="3" Color="White" />
+            <BoxView VerticalOptions="End"   HorizontalOptions="End"   WidthRequest="3"  HeightRequest="24" Color="White" />
+
+            <!--
+                Zona do set code:
+                  Na carta real ele fica em y=72-79% da altura (faixa entre artwork e texto)
+                  e x=50-95% da largura (lado direito).
+
+                  No guia 230×335:
+                    top margin = 72% × 335 = 241px
+                    height     = (79-72)% × 335 = 23px
+                    left margin = 50% × 230 = 115px
+                    width      = (95-50)% × 230 = 104px
+            -->
+            <Border HorizontalOptions="End"
+                    VerticalOptions="Start"
+                    WidthRequest="108"
+                    HeightRequest="23"
+                    Margin="0,241,0,0"
+                    StrokeShape="RoundRectangle 3"
+                    Stroke="#FFD700"
+                    StrokeThickness="1.5"
+                    BackgroundColor="#35FFD700">
+                <Label Text="SET CODE"
+                       TextColor="#FFD700"
+                       FontSize="8"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center"
+                       VerticalTextAlignment="Center" />
+            </Border>
+
+            <!-- Linha horizontal marcando a faixa do set code -->
+            <BoxView HorizontalOptions="Fill"
+                     VerticalOptions="Start"
+                     HeightRequest="1"
+                     Margin="0,241,0,0"
+                     Color="#60FFD700" />
+
+            <!-- Instrução no topo do guia -->
+            <Label Text="Enquadre a carta inteira"
+                   TextColor="#CCFFFFFF"
+                   FontSize="10"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Start"
+                   Margin="0,6,0,0" />
+
+        </Grid>
+
+        <!-- ── CAMADA 3: Painel inferior de status e resultado ───────────────── -->
+        <Border VerticalOptions="End"
+                BackgroundColor="#EE111827"
+                StrokeShape="RoundRectangle 20,20,0,0"
+                Stroke="Transparent"
+                Padding="20,14,20,24">
+            <VerticalStackLayout Spacing="10">
+
+                <!-- Status -->
+                <Label Text="{Binding StatusMessage}"
+                       TextColor="White"
+                       FontSize="13"
+                       HorizontalTextAlignment="Center" />
+
+                <!-- Set code detectado -->
+                <Label Text="{Binding DetectedSetCode}"
+                       IsVisible="{Binding HasSetCode}"
+                       TextColor="#FFD700"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" />
+
+                <!-- Loading da busca -->
+                <ActivityIndicator IsRunning="{Binding IsLookingUp}"
+                                   IsVisible="{Binding IsLookingUp}"
+                                   Color="White"
+                                   HorizontalOptions="Center" />
+
+                <!-- Carta encontrada -->
+                <Grid IsVisible="{Binding HasFoundCard}"
+                      ColumnDefinitions="76,*"
+                      ColumnSpacing="12">
+                    <Image Grid.Column="0"
+                           Source="{Binding FoundCard.ImageUrlSmall}"
+                           Aspect="AspectFit"
+                           HeightRequest="106"
+                           WidthRequest="76" />
+                    <VerticalStackLayout Grid.Column="1"
+                                         VerticalOptions="Center"
+                                         Spacing="3">
+                        <Label Text="{Binding FoundCard.Name}"
+                               TextColor="White"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               MaxLines="2"
+                               LineBreakMode="TailTruncation" />
+                        <Label Text="{Binding FoundCard.Type}"
+                               TextColor="#AAAAAA"
+                               FontSize="12" />
+                        <Label Text="{Binding FoundCard.Attribute}"
+                               TextColor="#888888"
+                               FontSize="11" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Sucesso -->
+                <Label Text="{Binding SuccessMessage}"
+                       IsVisible="{Binding ShowSuccess}"
+                       TextColor="#66BB6A"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" />
+
+                <!-- Botões quando carta encontrada -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10"
+                      IsVisible="{Binding HasFoundCard}">
+                    <Button Grid.Column="0"
+                            Text="Continuar"
+                            Command="{Binding ResumeScanCommand}"
+                            BackgroundColor="#444444"
+                            TextColor="White"
+                            HeightRequest="44"
+                            CornerRadius="8" />
+                    <Button Grid.Column="1"
+                            Text="✓ Adicionar"
+                            Command="{Binding ConfirmAddCommand}"
+                            IsEnabled="{Binding CanConfirm}"
+                            BackgroundColor="#2E7D32"
+                            TextColor="White"
+                            HeightRequest="44"
+                            FontAttributes="Bold"
+                            CornerRadius="8" />
+                </Grid>
+
+                <!-- Botão de retry quando pausado mas sem carta -->
+                <Button Text="Tentar novamente"
+                        Command="{Binding ResumeScanCommand}"
+                        IsVisible="{Binding ShowResumeButton}"
+                        BackgroundColor="#333333"
+                        TextColor="White"
+                        HeightRequest="44"
+                        CornerRadius="8" />
+
+            </VerticalStackLayout>
+        </Border>
+
+    </Grid>
 </ContentPage>

@@ -25,7 +25,9 @@ public record YgoCardSuggestion(
     int? Level,
     int? Attack,
     int? Defense,
-    string? ImageUrlSmall
+    string? ImageUrlSmall,
+    string? SetCode = null,
+    string? SetRarity = null
 );
 
 public record YgoCardDetails(
@@ -45,5 +47,3 @@ public record YgoCardDetails(
     string? ImageUrlSmall,
     string? ImageUrlCropped
 );
-
-public record ScanAddRequest(int YgoId, string Secao = "Main", int Quantidade = 1);

@@ -1,5 +1,3 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
 namespace DuelRecords.Scan;
 
 public partial class App : Application
@@ -10,7 +8,5 @@ public partial class App : Application
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)
-	{
-		return new Window(new AppShell());
-	}
+		=> new Window(new AppShell());
 }
